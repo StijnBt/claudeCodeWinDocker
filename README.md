@@ -1,4 +1,4 @@
-# Claude Code AL Dev Container
+# claudeCodeWinDocker
 
 Runs [Claude Code](https://claude.ai/code) inside a hardened Docker container on Windows (WSL2), with strict network restrictions to prevent the AI agent from reaching unauthorized services.
 
@@ -13,8 +13,9 @@ This project is a fork of [StefanMaron/claudeCodeAlDevContainer](https://github.
 ## Prerequisites
 
 - Windows 10 (build 19041+) or Windows 11
+- WSL
 - An [Anthropic API key](https://console.anthropic.com/)
-- [Windows Terminal](https://aka.ms/terminal) — required for the VS Code task. Pre-installed on Windows 11; on Windows 10 it must be installed separately from the Microsoft Store or via `winget install Microsoft.WindowsTerminal`.
+- [Windows Terminal](https://aka.ms/terminal) — required for the VS Code task. Pre-installed on Windows 11; on Windows 10 it must be installed separately from the Microsoft Store or via `winget install Microsoft.WindowsTerminal`. Another terminal can be configured or the internal one from VS Code could be used.
 
 ---
 
