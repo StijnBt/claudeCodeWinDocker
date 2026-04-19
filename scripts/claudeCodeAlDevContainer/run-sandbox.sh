@@ -21,6 +21,7 @@ docker run -it --rm \
   --cap-add=NET_ADMIN --cap-add=NET_RAW \
   -e ANTHROPIC_API_KEY \
   -v "$HOME/claude-al-development:/home/vscode/.claude" \
+  -v "$HOME/claude-configs:/home/vscode/claude-configs:ro" \
   -v "$HOME/.config/git/config:/home/vscode/.gitconfig:ro" \
   -v "$(pwd):/workspaces/project" \
   claude-code-sandbox

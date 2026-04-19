@@ -12,10 +12,13 @@ if ! command -v curl &> /dev/null; then
     rm -rf /var/lib/apt/lists/*
 fi
 
-# Install networking tools for the firewall
+# Install networking tools for the firewall, and Node.js for AL MCP servers
 apt-get update
-apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fsprogs
+apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fsprogs nodejs npm
 rm -rf /var/lib/apt/lists/*
+
+# Install AL development MCP servers globally (must happen before firewall is active)
+npm install -g al-mcp-server bc-code-intelligence-mcp
 
 # Install Claude Code for the remote user
 if [ "${_REMOTE_USER}" = "root" ]; then

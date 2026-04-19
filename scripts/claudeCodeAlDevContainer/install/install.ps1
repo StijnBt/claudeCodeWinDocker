@@ -60,14 +60,16 @@ function Ensure-UbuntuDistro {
     }
 
     Write-Host 'Installing Ubuntu distribution...' -ForegroundColor Cyan
-    Write-Host "Ubuntu installation started. You may be prompted to create a Linux username and password." -ForegroundColor Yellow
-    Write-Host "After installation completes, close this PowerShell session, reopen it as Administrator, and rerun this script." -ForegroundColor Green
-    & wsl.exe --install -d Ubuntu
+    Write-Host "Accept proposed username so it alligns with Windows." -ForegroundColor Cyan
+    & wsl.exe --install -d Ubuntu --no-launch
     if ($LASTEXITCODE -ne 0) {
         Write-Error 'Failed to install Ubuntu. Please confirm WSL2 is enabled and rerun the script.'
         exit 1
     }
-    exit 0
+    Write-Host 'Ubuntu installed. A new window will open for initial Ubuntu setup.' -ForegroundColor Yellow
+    Write-Host 'Create your Linux username and password there, then close that window.' -ForegroundColor Yellow
+    Start-Process wsl.exe -ArgumentList '-d Ubuntu'
+    Read-Host 'Press Enter here once you have completed Ubuntu setup and closed the Ubuntu window'
 }
 
 function Invoke-WslScript {
@@ -101,6 +103,7 @@ function Invoke-WslScript {
 
 function Install-DockerInWsl {
     Write-Host 'Installing Docker Engine inside Ubuntu WSL...' -ForegroundColor Cyan
+    Write-Host 'Ignore Docker Desktop for Windows recommendation & wait for automatic time-out of sleep' -ForegroundColor Cyan
 
     $script = @'
 #!/bin/bash
@@ -151,6 +154,36 @@ function Install-ClaudeCode {
     }
 }
 
+function Install-ClaudeConfigs {
+    Write-Host 'Cloning StefanMaron/claude-configs into Ubuntu WSL...' -ForegroundColor Cyan
+
+    $script = @'
+#!/bin/bash
+set -e
+
+if [ -d "$HOME/claude-configs/.git" ]; then
+    echo "claude-configs already cloned, pulling latest..."
+    git -C "$HOME/claude-configs" pull
+else
+    git clone https://github.com/StefanMaron/claude-configs.git "$HOME/claude-configs"
+fi
+
+mkdir -p "$HOME/claude-al-development"
+
+SETTINGS="$HOME/claude-al-development/settings.json"
+if [ ! -f "$SETTINGS" ]; then
+    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoiL2hvbWUvdnNjb2RlL2NsYXVkZS1jb25maWdzIn19fSwiZW5hYmxlZFBsdWdpbnMiOnsicHJvZmlsZS1hbC1kZXZlbG9wbWVudEBsb2NhbCI6dHJ1ZX19" | base64 -d > "$SETTINGS"
+    echo "Created $SETTINGS"
+else
+    echo "settings.json already exists at $SETTINGS - skipping"
+fi
+'@
+
+    Invoke-WslScript -Script $script
+
+    Write-Host 'claude-configs installed in Ubuntu WSL.' -ForegroundColor Green
+}
+
 function Confirm-InstallClaudeCode {
     if ($SkipClaude) {
         return $false
@@ -168,6 +201,54 @@ function Confirm-InstallClaudeCode {
     }
 }
 
+
+function Configure-GitInWsl {
+    Write-Host 'Configuring Git user settings in Ubuntu WSL...' -ForegroundColor Cyan
+
+    $existingName = wsl -d Ubuntu -- bash -c 'git config --global user.name  2>/dev/null' 2>$null
+    $existingEmail = wsl -d Ubuntu -- bash -c 'git config --global user.email 2>/dev/null' 2>$null
+
+    if (-not [string]::IsNullOrWhiteSpace($existingName) -or -not [string]::IsNullOrWhiteSpace($existingEmail)) {
+        Write-Host "Git is already configured in WSL:" -ForegroundColor Yellow
+        Write-Host "  user.name  = $existingName"  -ForegroundColor Yellow
+        Write-Host "  user.email = $existingEmail" -ForegroundColor Yellow
+        $reconfigure = Read-Host 'Reconfigure? [Y/N]'
+        if ($reconfigure.Trim().ToLower() -notin @('y', 'yes')) {
+            Write-Host 'Git configuration skipped.' -ForegroundColor Yellow
+            return
+        }
+    }
+
+    $gitName = Read-Host 'Enter Git user.name (leave blank to skip)'
+    $gitEmail = Read-Host 'Enter Git user.email (leave blank to skip)'
+
+    if ([string]::IsNullOrWhiteSpace($gitName) -and [string]::IsNullOrWhiteSpace($gitEmail)) {
+        Write-Host 'No Git user settings provided, skipping Git configuration.' -ForegroundColor Yellow
+        return
+    }
+
+    $escapedName = $gitName -replace "'", "'`"'`"'"
+    $escapedEmail = $gitEmail -replace "'", "'`"'`"'"
+
+    $script = @"
+#!/bin/bash
+set -e
+if ! command -v git >/dev/null 2>&1; then
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git
+fi
+if [ -n '$escapedName' ]; then
+    git config --global user.name '$escapedName'
+fi
+if [ -n '$escapedEmail' ]; then
+    git config --global user.email '$escapedEmail'
+fi
+"@
+
+    Invoke-WslScript -Script $script
+    Write-Host 'Git configuration completed in Ubuntu WSL.' -ForegroundColor Green
+}
+
 function Main {
     Ensure-RunAsAdministrator
     Write-Section 'Step 1: Enable WSL2'
@@ -176,25 +257,34 @@ function Main {
     Write-Section 'Step 2: Install Ubuntu WSL'
     Ensure-UbuntuDistro
 
+
+    Write-Section 'Step 3: Configure Git in Ubuntu WSL'
+    Configure-GitInWsl
+
+
     if (-not $SkipDocker) {
-        Write-Section 'Step 3: Install Docker in Ubuntu WSL'
+        Write-Section 'Step 4: Install Docker in Ubuntu WSL'
         Install-DockerInWsl
     }
     else {
         Write-Host 'Skipping Docker installation as requested.' -ForegroundColor Yellow
     }
 
+
+    Write-Section 'Step 5: Install Claude Code [Optional]'
     if (Confirm-InstallClaudeCode) {
-        Write-Section 'Step 4: Install Claude Code'
         Install-ClaudeCode
     }
     else {
         Write-Host 'Claude Code installation skipped.' -ForegroundColor Yellow
     }
 
+    Write-Section 'Step 6: Install Claude Configs (AL Development plugins)'
+    Install-ClaudeConfigs
+
     Write-Host "`nInstallation sequence completed." -ForegroundColor Green
     Write-Host "If Docker was installed, open a new WSL terminal before using Docker commands." -ForegroundColor Cyan
-    Write-Host "To build the sandbox image from the repository root, run:`n  docker build -t claude-code-sandbox -f standalone/Dockerfile ." -ForegroundColor Cyan
+    Read-Host "`nPress Enter to exit"
 }
 
 Main
