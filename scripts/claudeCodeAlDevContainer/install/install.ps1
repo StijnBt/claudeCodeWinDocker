@@ -152,6 +152,36 @@ function Install-ClaudeCode {
     }
 }
 
+function Install-ClaudeConfigs {
+    Write-Host 'Cloning StefanMaron/claude-configs into Ubuntu WSL...' -ForegroundColor Cyan
+
+    $script = @'
+#!/bin/bash
+set -e
+
+if [ -d "$HOME/claude-configs/.git" ]; then
+    echo "claude-configs already cloned, pulling latest..."
+    git -C "$HOME/claude-configs" pull
+else
+    git clone https://github.com/StefanMaron/claude-configs.git "$HOME/claude-configs"
+fi
+
+mkdir -p "$HOME/claude-al-development"
+
+SETTINGS="$HOME/claude-al-development/settings.json"
+if [ ! -f "$SETTINGS" ]; then
+    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoifi9jbGF1ZGUtY29uZmlncyJ9fX0sImVuYWJsZWRQbHVnaW5zIjp7InByb2ZpbGUtYWwtZGV2ZWxvcG1lbnRAbG9jYWwiOnRydWV9fQ==" | base64 -d > "$SETTINGS"
+    echo "Created $SETTINGS"
+else
+    echo "settings.json already exists at $SETTINGS - skipping"
+fi
+'@
+
+    Invoke-WslScript -Script $script
+
+    Write-Host 'claude-configs installed in Ubuntu WSL.' -ForegroundColor Green
+}
+
 function Confirm-InstallClaudeCode {
     if ($SkipClaude) {
         return $false
@@ -173,7 +203,7 @@ function Confirm-InstallClaudeCode {
 function Configure-GitInWsl {
     Write-Host 'Configuring Git user settings in Ubuntu WSL...' -ForegroundColor Cyan
 
-    $existingName  = wsl -d Ubuntu -- bash -c 'git config --global user.name  2>/dev/null' 2>$null
+    $existingName = wsl -d Ubuntu -- bash -c 'git config --global user.name  2>/dev/null' 2>$null
     $existingEmail = wsl -d Ubuntu -- bash -c 'git config --global user.email 2>/dev/null' 2>$null
 
     if (-not [string]::IsNullOrWhiteSpace($existingName) -or -not [string]::IsNullOrWhiteSpace($existingEmail)) {
@@ -181,7 +211,7 @@ function Configure-GitInWsl {
         Write-Host "  user.name  = $existingName"  -ForegroundColor Yellow
         Write-Host "  user.email = $existingEmail" -ForegroundColor Yellow
         $reconfigure = Read-Host 'Reconfigure? [Y/N]'
-        if ($reconfigure.Trim().ToLower() -notin @('y','yes')) {
+        if ($reconfigure.Trim().ToLower() -notin @('y', 'yes')) {
             Write-Host 'Git configuration skipped.' -ForegroundColor Yellow
             return
         }
@@ -195,8 +225,8 @@ function Configure-GitInWsl {
         return
     }
 
-    $escapedName = $gitName -replace "'", "'\"'\"'"
-    $escapedEmail = $gitEmail -replace "'", "'\"'\"'"
+    $escapedName = $gitName -replace "'", "'`"'`"'"
+    $escapedEmail = $gitEmail -replace "'", "'`"'`"'"
 
     $script = @"
 #!/bin/bash
@@ -246,6 +276,9 @@ function Main {
     else {
         Write-Host 'Claude Code installation skipped.' -ForegroundColor Yellow
     }
+
+    Write-Section 'Step 6: Install Claude Configs (AL Development plugins)'
+    Install-ClaudeConfigs
 
     Write-Host "`nInstallation sequence completed." -ForegroundColor Green
     Write-Host "If Docker was installed, open a new WSL terminal before using Docker commands." -ForegroundColor Cyan
