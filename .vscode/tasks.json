@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Claude Code Sandbox",
+            "label": "claudeCodeWinDocker: Run",
             "type": "shell",
             "command": "cmd",
             "args": [
@@ -16,6 +16,30 @@
                 "-ic",
                 "bash scripts/claudeCodeAlDevContainer/run-sandbox.sh"
             ],
+            "presentation": {
+                "reveal": "never",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "claudeCodeWinDocker: (Re)Build Docker Image",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "start",
+                "wt",
+                "wsl",
+                "--cd",
+                "${workspaceFolder}",
+                "docker",
+                "build",
+                "-t",
+                "claude-code-sandbox",
+                "scripts/claudeCodeAlDevContainer/src"
+            ],
+            "group": "build",
             "presentation": {
                 "reveal": "never",
                 "focus": false
