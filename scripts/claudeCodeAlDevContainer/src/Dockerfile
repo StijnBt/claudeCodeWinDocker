@@ -24,8 +24,9 @@ RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
 # Run install.sh with the devcontainer feature contract variables
 ENV _REMOTE_USER=vscode
 ENV _REMOTE_USER_HOME=/home/vscode
+WORKDIR /tmp
 RUN chmod +x /tmp/install.sh /tmp/init-firewall.sh /tmp/harden-env.sh \
-    && cd /tmp && VERSION="${VERSION}" bash install.sh \
+    && VERSION="${VERSION}" bash install.sh \
     && cp "$(readlink -f /home/vscode/.local/bin/claude)" /usr/local/bin/claude \
     && chmod +x /usr/local/bin/claude
 
