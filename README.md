@@ -21,7 +21,7 @@ This project is a fork of [StefanMaron/claudeCodeAlDevContainer](https://github.
 
 ## Installation
 
-Open PowerShell **as Administrator** and run:
+Run the VS Code task **claudeCodeWinDocker: Install** (requires VS Code started as Administrator), or open PowerShell **as Administrator** and run:
 
 ```powershell
 .\scripts\claudeCodeAlDevContainer\install\install.ps1
@@ -59,6 +59,8 @@ source ~/.bashrc
 ## Running the sandbox
 
 ### Via VS Code
+
+> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
 Open the repo in VS Code and run the task via `Ctrl+Shift+P` → **Tasks: Run Task** → **claudeCodeWinDocker: Run**.
 
@@ -158,7 +160,7 @@ On `v*` tag push, the release workflow builds and publishes the image to GHCR an
 
 ## Uninstall
 
-Run as Administrator:
+Run the VS Code task **claudeCodeWinDocker: Uninstall** (requires VS Code started as Administrator), or run as Administrator:
 
 ```powershell
 .\scripts\claudeCodeAlDevContainer\install\uninstall.ps1
