@@ -101,6 +101,7 @@ function Invoke-WslScript {
 
 function Install-DockerInWsl {
     Write-Host 'Installing Docker Engine inside Ubuntu WSL...' -ForegroundColor Cyan
+    Write-Host 'Ignore Docker Desktop for Windows recommendation & wait for automatic time-out of sleep' -ForegroundColor Cyan
 
     $script = @'
 #!/bin/bash
@@ -184,8 +185,9 @@ function Main {
         Write-Host 'Skipping Docker installation as requested.' -ForegroundColor Yellow
     }
 
+
+    Write-Section 'Step 4: Install Claude Code [Optional]'
     if (Confirm-InstallClaudeCode) {
-        Write-Section 'Step 4: Install Claude Code'
         Install-ClaudeCode
     }
     else {
