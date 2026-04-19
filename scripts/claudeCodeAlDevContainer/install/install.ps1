@@ -60,14 +60,15 @@ function Ensure-UbuntuDistro {
     }
 
     Write-Host 'Installing Ubuntu distribution...' -ForegroundColor Cyan
-    Write-Host "Ubuntu installation started. You may be prompted to create a Linux username and password." -ForegroundColor Yellow
-    Write-Host "After installation completes, close this PowerShell session, reopen it as Administrator, and rerun this script." -ForegroundColor Green
-    & wsl.exe --install -d Ubuntu
+    & wsl.exe --install -d Ubuntu --no-launch
     if ($LASTEXITCODE -ne 0) {
         Write-Error 'Failed to install Ubuntu. Please confirm WSL2 is enabled and rerun the script.'
         exit 1
     }
-    exit 0
+    Write-Host 'Ubuntu installed. A new window will open for initial Ubuntu setup.' -ForegroundColor Yellow
+    Write-Host 'Create your Linux username and password there, then close that window.' -ForegroundColor Yellow
+    Start-Process wsl.exe -ArgumentList '-d Ubuntu'
+    Read-Host 'Press Enter here once you have completed Ubuntu setup and closed the Ubuntu window'
 }
 
 function Invoke-WslScript {
@@ -282,7 +283,7 @@ function Main {
 
     Write-Host "`nInstallation sequence completed." -ForegroundColor Green
     Write-Host "If Docker was installed, open a new WSL terminal before using Docker commands." -ForegroundColor Cyan
-    Write-Host "To build the sandbox image from the repository root, run:`n  docker build -t claude-code-sandbox -f standalone/Dockerfile ." -ForegroundColor Cyan
+    Read-Host "`nPress Enter to exit"
 }
 
 Main
