@@ -60,6 +60,7 @@ function Ensure-UbuntuDistro {
     }
 
     Write-Host 'Installing Ubuntu distribution...' -ForegroundColor Cyan
+    Write-Host "Accept proposed username so it alligns with Windows." -ForegroundColor Cyan
     & wsl.exe --install -d Ubuntu --no-launch
     if ($LASTEXITCODE -ne 0) {
         Write-Error 'Failed to install Ubuntu. Please confirm WSL2 is enabled and rerun the script.'
@@ -171,7 +172,7 @@ mkdir -p "$HOME/claude-al-development"
 
 SETTINGS="$HOME/claude-al-development/settings.json"
 if [ ! -f "$SETTINGS" ]; then
-    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoifi9jbGF1ZGUtY29uZmlncyJ9fX0sImVuYWJsZWRQbHVnaW5zIjp7InByb2ZpbGUtYWwtZGV2ZWxvcG1lbnRAbG9jYWwiOnRydWV9fQ==" | base64 -d > "$SETTINGS"
+    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoiL2hvbWUvdnNjb2RlL2NsYXVkZS1jb25maWdzIn19fSwiZW5hYmxlZFBsdWdpbnMiOnsicHJvZmlsZS1hbC1kZXZlbG9wbWVudEBsb2NhbCI6dHJ1ZX19" | base64 -d > "$SETTINGS"
     echo "Created $SETTINGS"
 else
     echo "settings.json already exists at $SETTINGS - skipping"

@@ -15,7 +15,6 @@ $newPath = ($currentPath -split ";" | Where-Object { $_ -notmatch "\.local\\bin"
 
 
 Write-Host "[2/4]: Uninstalling Ubuntu from WSL2..." -ForegroundColor Cyan
-Write-Host "       Accept proposed username so it alligns with Windows." -ForegroundColor Cyan
 wsl --unregister Ubuntu
 
 
