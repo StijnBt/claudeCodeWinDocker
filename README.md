@@ -7,6 +7,7 @@ Runs [Claude Code](https://claude.ai/code) inside a hardened Docker container on
 ## Credits
 
 This project is a fork of [StefanMaron/claudeCodeAlDevContainer](https://github.com/StefanMaron/claudeCodeAlDevContainer) by [Stefan Maron](https://github.com/StefanMaron). The core sandbox architecture, security hardening, and firewall design all originate from his work. Many thanks to Stefan for laying the foundation that made this project possible.
+This was made by AI assistance.
 
 ---
 

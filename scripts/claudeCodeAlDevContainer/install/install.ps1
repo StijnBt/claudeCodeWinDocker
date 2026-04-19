@@ -169,6 +169,54 @@ function Confirm-InstallClaudeCode {
     }
 }
 
+
+function Configure-GitInWsl {
+    Write-Host 'Configuring Git user settings in Ubuntu WSL...' -ForegroundColor Cyan
+
+    $existingName  = wsl -d Ubuntu -- bash -c 'git config --global user.name  2>/dev/null' 2>$null
+    $existingEmail = wsl -d Ubuntu -- bash -c 'git config --global user.email 2>/dev/null' 2>$null
+
+    if (-not [string]::IsNullOrWhiteSpace($existingName) -or -not [string]::IsNullOrWhiteSpace($existingEmail)) {
+        Write-Host "Git is already configured in WSL:" -ForegroundColor Yellow
+        Write-Host "  user.name  = $existingName"  -ForegroundColor Yellow
+        Write-Host "  user.email = $existingEmail" -ForegroundColor Yellow
+        $reconfigure = Read-Host 'Reconfigure? [Y/N]'
+        if ($reconfigure.Trim().ToLower() -notin @('y','yes')) {
+            Write-Host 'Git configuration skipped.' -ForegroundColor Yellow
+            return
+        }
+    }
+
+    $gitName = Read-Host 'Enter Git user.name (leave blank to skip)'
+    $gitEmail = Read-Host 'Enter Git user.email (leave blank to skip)'
+
+    if ([string]::IsNullOrWhiteSpace($gitName) -and [string]::IsNullOrWhiteSpace($gitEmail)) {
+        Write-Host 'No Git user settings provided, skipping Git configuration.' -ForegroundColor Yellow
+        return
+    }
+
+    $escapedName = $gitName -replace "'", "'\"'\"'"
+    $escapedEmail = $gitEmail -replace "'", "'\"'\"'"
+
+    $script = @"
+#!/bin/bash
+set -e
+if ! command -v git >/dev/null 2>&1; then
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git
+fi
+if [ -n '$escapedName' ]; then
+    git config --global user.name '$escapedName'
+fi
+if [ -n '$escapedEmail' ]; then
+    git config --global user.email '$escapedEmail'
+fi
+"@
+
+    Invoke-WslScript -Script $script
+    Write-Host 'Git configuration completed in Ubuntu WSL.' -ForegroundColor Green
+}
+
 function Main {
     Ensure-RunAsAdministrator
     Write-Section 'Step 1: Enable WSL2'
@@ -177,8 +225,13 @@ function Main {
     Write-Section 'Step 2: Install Ubuntu WSL'
     Ensure-UbuntuDistro
 
+
+    Write-Section 'Step 3: Configure Git in Ubuntu WSL'
+    Configure-GitInWsl
+
+
     if (-not $SkipDocker) {
-        Write-Section 'Step 3: Install Docker in Ubuntu WSL'
+        Write-Section 'Step 4: Install Docker in Ubuntu WSL'
         Install-DockerInWsl
     }
     else {
@@ -186,7 +239,7 @@ function Main {
     }
 
 
-    Write-Section 'Step 4: Install Claude Code [Optional]'
+    Write-Section 'Step 5: Install Claude Code [Optional]'
     if (Confirm-InstallClaudeCode) {
         Install-ClaudeCode
     }
