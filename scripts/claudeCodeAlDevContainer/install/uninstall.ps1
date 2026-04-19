@@ -26,4 +26,24 @@ Write-Host "[4/4]: Disabling Virtual Machine Platform features..." -ForegroundCo
 dism.exe /online /disable-feature /featurename:VirtualMachinePlatform /norestart
 
 
+
+# Confirm and remove any remaining local Claude Code installation
+$claudeBinary = Join-Path $env:USERPROFILE ".local\bin\claude.exe"
+$claudeHome = Join-Path $env:USERPROFILE ".claude"
+if ((Test-Path $claudeBinary) -or (Test-Path $claudeHome)) {
+    $confirm = Read-Host "Claude Code appears installed locally. Remove remaining local files? (Y/N)"
+    if ($confirm -match '^[Yy]$') {
+        Remove-Item -Path $claudeBinary -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $claudeHome -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "Removed remaining local Claude Code files." -ForegroundColor Cyan
+    }
+    else {
+        Write-Host "Skipped removing remaining local Claude Code files." -ForegroundColor Yellow
+    }
+}
+else {
+    Write-Host "No local Claude Code installation detected." -ForegroundColor Yellow
+}
+
+
 Write-Host "*** REBOOT REQUIRED ***" -ForegroundColor Cyan
