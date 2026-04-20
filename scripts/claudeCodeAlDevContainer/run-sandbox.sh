@@ -14,7 +14,7 @@ find "$REPO_ROOT" -name "*.sh" | xargs dos2unix -q 2>/dev/null || true
 # Auto-build image if not present
 if ! docker image inspect claude-code-sandbox > /dev/null 2>&1; then
     echo "Image 'claude-code-sandbox' not found, building..."
-    docker build -t claude-code-sandbox "$REPO_ROOT/scripts/claudeCodeAlDevContainer/src"
+    docker build -t claude-code-sandbox "$REPO_ROOT/scripts/claudeCodeAlDevContainer/container"
 fi
 
 docker run -it --rm \

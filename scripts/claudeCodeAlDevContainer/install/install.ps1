@@ -72,32 +72,21 @@ function Ensure-UbuntuDistro {
     Read-Host 'Press Enter here once you have completed Ubuntu setup and closed the Ubuntu window'
 }
 
-function Invoke-WslScript {
-    param([string]$Script)
-
-    # Write script to Windows temp, execute via WSL
-    $winTemp = $env:TEMP
-    $scriptName = "wsl-script-$(Get-Random).sh"
-    $winPath = Join-Path $winTemp $scriptName
+function Invoke-WslFile {
+    param([string]$ScriptPath, [string[]]$Arguments = @())
 
     # Convert Windows path to WSL path format: C:\path\to\file -> /mnt/c/path/to/file
-    $pathWithoutDrive = $winPath.Substring(2) -replace '\\', '/'  # Remove drive letter and convert slashes
-    $wslPath = "/mnt/$($winPath.Substring(0, 1).ToLower())$pathWithoutDrive"
+    $drive = $ScriptPath.Substring(0, 1).ToLower()
+    $pathWithoutDrive = $ScriptPath.Substring(2) -replace '\\', '/'
+    $wslPath = "/mnt/$drive$pathWithoutDrive"
 
-    # Write with Unix line endings - remove all CR characters and ensure only LF
-    $unixScript = $Script -replace "`r`n", "`n" -replace "`r", "`n"
-    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-    [System.IO.File]::WriteAllText($winPath, $unixScript, $utf8NoBom)
+    # Build quoted argument list for bash -s
+    $argStr = ($Arguments | ForEach-Object { "'$($_ -replace "'", "'\''")'" }) -join ' '
 
-    try {
-        # Execute from WSL, stripping any remaining CR characters with tr
-        & wsl.exe -d Ubuntu -- bash -c "tr -d '\r' < '$wslPath' | bash"
-        if ($LASTEXITCODE -ne 0) {
-            throw 'WSL command failed. Review the output above for details.'
-        }
-    }
-    finally {
-        Remove-Item $winPath -Force -ErrorAction SilentlyContinue
+    # Strip any CRLF from the script file before piping into bash
+    & wsl.exe -d Ubuntu -- bash -c "tr -d '\r' < '$wslPath' | bash -s -- $argStr"
+    if ($LASTEXITCODE -ne 0) {
+        throw 'WSL script failed. Review the output above for details.'
     }
 }
 
@@ -105,35 +94,7 @@ function Install-DockerInWsl {
     Write-Host 'Installing Docker Engine inside Ubuntu WSL...' -ForegroundColor Cyan
     Write-Host 'Ignore Docker Desktop for Windows recommendation & wait for automatic time-out of sleep' -ForegroundColor Cyan
 
-    $script = @'
-#!/bin/bash
-set -e
-
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-rm get-docker.sh
-sudo usermod -aG docker "$USER"
-sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
-sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
-
-sudo rm -f /etc/sudoers.d/docker-autostart
-sudo bash -lc 'echo "JWRvY2tlciBBTEw9KEFMTCkgTk9QQVNTV0Q6IC91c3Ivc2Jpbi9zZXJ2aWNlIGRvY2tlciBzdGFydAo=" | base64 -d > /etc/sudoers.d/docker-autostart'
-sudo sed -i 's/\r$//' /etc/sudoers.d/docker-autostart
-sudo chmod 440 /etc/sudoers.d/docker-autostart
-
-if ! grep -qF '# Docker autostart (added by install.ps1)' ~/.bashrc; then
-    echo "" >> ~/.bashrc
-    echo "# Docker autostart (added by install.ps1)" >> ~/.bashrc
-    echo 'if [ "$(service docker status 2>&1 | grep -c '"'"'not running'"'"')" -eq 1 ]; then' >> ~/.bashrc
-    echo "    sudo service docker start > /dev/null 2>&1" >> ~/.bashrc
-    echo "fi" >> ~/.bashrc
-fi
-
-sudo service docker start
-sudo docker run --rm hello-world
-'@
-
-    Invoke-WslScript -Script $script
+    Invoke-WslFile -ScriptPath "$PSScriptRoot\install-docker.sh"
 
     Write-Host "Docker is installed in Ubuntu WSL." -ForegroundColor Green
     Write-Host "Open a new WSL terminal to use Docker without requiring a new login session." -ForegroundColor Yellow
@@ -157,29 +118,7 @@ function Install-ClaudeCode {
 function Install-ClaudeConfigs {
     Write-Host 'Cloning StefanMaron/claude-configs into Ubuntu WSL...' -ForegroundColor Cyan
 
-    $script = @'
-#!/bin/bash
-set -e
-
-if [ -d "$HOME/claude-configs/.git" ]; then
-    echo "claude-configs already cloned, pulling latest..."
-    git -C "$HOME/claude-configs" pull
-else
-    git clone https://github.com/StefanMaron/claude-configs.git "$HOME/claude-configs"
-fi
-
-mkdir -p "$HOME/claude-al-development"
-
-SETTINGS="$HOME/claude-al-development/settings.json"
-if [ ! -f "$SETTINGS" ]; then
-    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoiL2hvbWUvdnNjb2RlL2NsYXVkZS1jb25maWdzIn19fSwiZW5hYmxlZFBsdWdpbnMiOnsicHJvZmlsZS1hbC1kZXZlbG9wbWVudEBsb2NhbCI6dHJ1ZX19" | base64 -d > "$SETTINGS"
-    echo "Created $SETTINGS"
-else
-    echo "settings.json already exists at $SETTINGS - skipping"
-fi
-'@
-
-    Invoke-WslScript -Script $script
+    Invoke-WslFile -ScriptPath "$PSScriptRoot\install-claude-configs.sh"
 
     Write-Host 'claude-configs installed in Ubuntu WSL.' -ForegroundColor Green
 }
@@ -227,25 +166,7 @@ function Configure-GitInWsl {
         return
     }
 
-    $escapedName = $gitName -replace "'", "'`"'`"'"
-    $escapedEmail = $gitEmail -replace "'", "'`"'`"'"
-
-    $script = @"
-#!/bin/bash
-set -e
-if ! command -v git >/dev/null 2>&1; then
-    sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git
-fi
-if [ -n '$escapedName' ]; then
-    git config --global user.name '$escapedName'
-fi
-if [ -n '$escapedEmail' ]; then
-    git config --global user.email '$escapedEmail'
-fi
-"@
-
-    Invoke-WslScript -Script $script
+    Invoke-WslFile -ScriptPath "$PSScriptRoot\configure-git.sh" -Arguments @($gitName, $gitEmail)
     Write-Host 'Git configuration completed in Ubuntu WSL.' -ForegroundColor Green
 }
 

@@ -133,10 +133,10 @@ When the container starts (before Claude Code launches):
 
 ## Rebuilding the image
 
-After modifying any file under `scripts/claudeCodeAlDevContainer/src/`, rebuild via VS Code task **claudeCodeWinDocker: (Re)Build Docker Image**, or manually:
+After modifying any file under `scripts/claudeCodeAlDevContainer/container/`, rebuild via VS Code task **claudeCodeWinDocker: (Re)Build Docker Image**, or manually:
 
 ```bash
-docker build -t claude-code-sandbox scripts/claudeCodeAlDevContainer/src
+docker build -t claude-code-sandbox scripts/claudeCodeAlDevContainer/container
 ```
 
 Or remove the image and let `run-sandbox.sh` rebuild it on next launch:

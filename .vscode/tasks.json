@@ -67,7 +67,7 @@
                 "build",
                 "-t",
                 "claude-code-sandbox",
-                "scripts/claudeCodeAlDevContainer/src"
+                "scripts/claudeCodeAlDevContainer/container"
             ],
             "group": "build",
             "presentation": {
