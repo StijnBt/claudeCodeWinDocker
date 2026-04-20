@@ -44,6 +44,7 @@ function Enable-WSL2Features {
 
     Write-Host "WSL2 features have been enabled. A reboot is required before continuing." -ForegroundColor Yellow
     Write-Host "Please reboot and run this script again." -ForegroundColor Green
+    Read-Host "`nPress Enter to exit"
     exit 0
 }
 

@@ -63,7 +63,7 @@
             "problemMatcher": []
         },
         {
-            "label": "claudeCodeWinDocker: (Re)Build Docker Image",
+            "label": "claudeCodeWinDocker: Clear Docker Image",
             "type": "shell",
             "command": "cmd",
             "args": [
@@ -73,13 +73,10 @@
                 "wsl",
                 "--cd",
                 "${workspaceFolder}",
-                "docker",
-                "build",
-                "-t",
-                "claude-code-sandbox",
-                "scripts/claudeCodeAlDevContainer/container"
+                "bash",
+                "-ic",
+                "bash scripts/claudeCodeAlDevContainer/clear-image.sh"
             ],
-            "group": "build",
             "presentation": {
                 "reveal": "never",
                 "focus": false
