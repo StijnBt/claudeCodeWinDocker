@@ -27,9 +27,14 @@
             "type": "shell",
             "command": "cmd",
             "args": [
-                "/c", "start", "wt",
-                "powershell", "-ExecutionPolicy", "Bypass",
-                "-File", "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\install\\install.ps1"
+                "/c",
+                "start",
+                "wt",
+                "powershell",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\install.ps1"
             ],
             "presentation": {
                 "reveal": "never",
@@ -42,9 +47,14 @@
             "type": "shell",
             "command": "cmd",
             "args": [
-                "/c", "start", "wt",
-                "powershell", "-ExecutionPolicy", "Bypass",
-                "-File", "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\install\\uninstall.ps1"
+                "/c",
+                "start",
+                "wt",
+                "powershell",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\uninstall.ps1"
             ],
             "presentation": {
                 "reveal": "never",

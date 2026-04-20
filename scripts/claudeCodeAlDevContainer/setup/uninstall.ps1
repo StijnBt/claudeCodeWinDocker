@@ -47,3 +47,4 @@ else {
 
 
 Write-Host "*** REBOOT REQUIRED ***" -ForegroundColor Cyan
+Read-Host "`nPress Enter to exit"
