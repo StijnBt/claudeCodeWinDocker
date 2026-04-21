@@ -22,6 +22,17 @@ elif [ -f "$CLAUDE_JSON" ] && [ ! -L "$CLAUDE_JSON" ]; then
     chown -h vscode:vscode "$CLAUDE_JSON"
 fi
 
+# Generate settings.json fresh — enables the AL plugin and skips the dangerous-mode prompt
+cat > /home/vscode/.claude/settings.json <<'EOF'
+{
+  "enabledPlugins": {
+    "/home/vscode/claude-configs/profile-al-development": true
+  },
+  "skipDangerousModePermissionPrompt": true
+}
+EOF
+chown vscode:vscode /home/vscode/.claude/settings.json
+
 # Fix workspace ownership (bind mount may be owned by host UID)
 if [ -d /workspaces/project ]; then
     chown vscode:vscode /workspaces/project
