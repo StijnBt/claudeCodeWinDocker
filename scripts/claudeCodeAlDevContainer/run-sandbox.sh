@@ -11,6 +11,9 @@ if ! command -v dos2unix > /dev/null 2>&1; then
 fi
 find "$REPO_ROOT" -name "*.sh" | xargs dos2unix -q 2>/dev/null || true
 
+# Ensure claude-configs is cloned and symlinks are in place
+"$SCRIPT_DIR/setup/install-claude-configs.sh"
+
 # Auto-build image if not present
 if ! docker image inspect claude-code-sandbox > /dev/null 2>&1; then
     echo "Image 'claude-code-sandbox' not found, building..."
