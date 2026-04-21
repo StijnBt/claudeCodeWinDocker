@@ -1,5 +1,3 @@
 {
-  "enabledPlugins": {
-    "profile-al-development@claude-configs": true
-  }
+  "enabledPlugins": {}
 }

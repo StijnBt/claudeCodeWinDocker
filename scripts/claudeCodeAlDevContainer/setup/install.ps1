@@ -116,13 +116,6 @@ function Install-ClaudeCode {
     }
 }
 
-function Install-ClaudeConfigs {
-    Write-Host 'Cloning StefanMaron/claude-configs into Ubuntu WSL...' -ForegroundColor Cyan
-
-    Invoke-WslFile -ScriptPath "$PSScriptRoot\install-claude-configs.sh"
-
-    Write-Host 'claude-configs installed in Ubuntu WSL.' -ForegroundColor Green
-}
 
 function Confirm-InstallClaudeCode {
     if ($SkipClaude) {
@@ -200,9 +193,6 @@ function Main {
     else {
         Write-Host 'Claude Code installation skipped.' -ForegroundColor Yellow
     }
-
-    Write-Section 'Step 6: Install Claude Configs (AL Development plugins)'
-    Install-ClaudeConfigs
 
     Write-Host "`nInstallation sequence completed." -ForegroundColor Green
     Write-Host "If Docker was installed, open a new WSL terminal before using Docker commands." -ForegroundColor Cyan

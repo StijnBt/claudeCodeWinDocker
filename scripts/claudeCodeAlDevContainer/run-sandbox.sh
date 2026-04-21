@@ -18,14 +18,27 @@ if [ -d "$GITCONFIG_HOST" ]; then
     sudo rm -rf "$GITCONFIG_HOST"
 fi
 
-# Ensure claude-configs is cloned and symlinks are in place
-"$SCRIPT_DIR/setup/install-claude-configs.sh"
-
 # Auto-build image if not present
 if ! docker image inspect claude-code-sandbox > /dev/null 2>&1; then
     echo "Image 'claude-code-sandbox' not found, building..."
     docker build -t claude-code-sandbox "$REPO_ROOT/scripts/claudeCodeAlDevContainer/container"
 fi
+
+# Profile menu
+echo ""
+echo "Claude Code Sandbox"
+echo "-------------------"
+echo "1) Vanilla Claude Code"
+echo "2) Claude Code with AL Development profile (Stefan Maron)"
+echo ""
+while true; do
+    read -rp "Choose [1/2]: " choice
+    case "$choice" in
+        1) CLAUDE_PROFILE=vanilla;        break ;;
+        2) CLAUDE_PROFILE=al-development; break ;;
+        *) echo "Please choose 1 or 2." ;;
+    esac
+done
 
 GITCONFIG_MOUNT=()
 if [ -f "$GITCONFIG_HOST" ]; then
@@ -35,9 +48,8 @@ fi
 docker run -it --rm \
   --cap-add=NET_ADMIN --cap-add=NET_RAW \
   -e ANTHROPIC_API_KEY \
-  -v "$HOME/claude-al-development:/home/vscode/.claude" \
-  -v "$HOME/claude-configs:/home/vscode/claude-configs:ro" \
+  -e CLAUDE_PROFILE="$CLAUDE_PROFILE" \
+  -v claude-code-data:/home/vscode/.claude \
   "${GITCONFIG_MOUNT[@]}" \
   -v "$(pwd):/workspaces/project" \
   claude-code-sandbox
-
