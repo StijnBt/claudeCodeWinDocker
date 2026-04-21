@@ -8,47 +8,44 @@ else
     git clone https://github.com/StefanMaron/claude-configs.git "$HOME/claude-configs"
 fi
 
-# Ensure the marketplace catalog exists so Claude Code can discover plugins
-MARKETPLACE_DIR="$HOME/claude-configs/.claude-plugin"
-MARKETPLACE_JSON="$MARKETPLACE_DIR/marketplace.json"
-if [ ! -f "$MARKETPLACE_JSON" ]; then
-    mkdir -p "$MARKETPLACE_DIR"
-    cat > "$MARKETPLACE_JSON" <<'EOF'
-{
-  "name": "local",
-  "plugins": [
-    {
-      "name": "profile-al-development",
-      "source": "./plugins/profile-al-development",
-      "description": "AL development profile for Business Central"
-    }
-  ]
-}
-EOF
-    echo "Created $MARKETPLACE_JSON"
-fi
-
-# Ensure the profile-al-development plugin exists
-PLUGIN_DIR="$HOME/claude-configs/plugins/profile-al-development"
-PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
-if [ ! -f "$PLUGIN_JSON" ]; then
-    mkdir -p "$PLUGIN_DIR/.claude-plugin"
-    cat > "$PLUGIN_JSON" <<'EOF'
-{
-  "name": "profile-al-development",
-  "version": "1.0.0",
-  "description": "AL development profile for Business Central"
-}
-EOF
-    echo "Created $PLUGIN_JSON"
-fi
-
 mkdir -p "$HOME/claude-al-development"
+
+# Expose plugin content directly in user config via container-valid symlinks.
+# run-sandbox.sh mounts:
+#   $HOME/claude-al-development  →  /home/vscode/.claude          (user config)
+#   $HOME/claude-configs         →  /home/vscode/claude-configs   (read-only)
+# Symlinks point to /home/vscode/claude-configs/... which is valid inside the
+# container even though the path doesn't exist on the WSL host.
+PLUGIN_SRC_CONTAINER="/home/vscode/claude-configs/profile-al-development"
+PLUGIN_SRC_HOST="$HOME/claude-configs/profile-al-development"
+
+link_plugin_dir() {
+    local subdir="$1"
+    local src="$PLUGIN_SRC_HOST/$subdir"
+    local dst="$HOME/claude-al-development/$subdir"
+    mkdir -p "$dst"
+    [ -d "$src" ] || return 0
+    for f in "$src"/*; do
+        [ -e "$f" ] || continue
+        fname=$(basename "$f")
+        ln -sf "$PLUGIN_SRC_CONTAINER/$subdir/$fname" "$dst/$fname"
+    done
+    echo "Linked $subdir from plugin"
+}
+
+link_plugin_dir agents
+link_plugin_dir skills
+link_plugin_dir commands
+
+# Link user-scope CLAUDE.md (replace if it's already a symlink, skip if real file)
+CLAUDE_MD="$HOME/claude-al-development/CLAUDE.md"
+if [ ! -e "$CLAUDE_MD" ] || [ -L "$CLAUDE_MD" ]; then
+    ln -sf "$PLUGIN_SRC_CONTAINER/CLAUDE.md" "$CLAUDE_MD"
+    echo "Linked CLAUDE.md from plugin"
+fi
 
 SETTINGS="$HOME/claude-al-development/settings.json"
 if [ ! -f "$SETTINGS" ]; then
-    echo "eyJleHRyYUtub3duTWFya2V0cGxhY2VzIjp7ImxvY2FsIjp7InNvdXJjZSI6eyJzb3VyY2UiOiJkaXJlY3RvcnkiLCJwYXRoIjoiL2hvbWUvdnNjb2RlL2NsYXVkZS1jb25maWdzIn19fSwiZW5hYmxlZFBsdWdpbnMiOnsicHJvZmlsZS1hbC1kZXZlbG9wbWVudEBsb2NhbCI6dHJ1ZX19" | base64 -d > "$SETTINGS"
+    echo '{}' > "$SETTINGS"
     echo "Created $SETTINGS"
-else
-    echo "settings.json already exists at $SETTINGS - skipping"
 fi
