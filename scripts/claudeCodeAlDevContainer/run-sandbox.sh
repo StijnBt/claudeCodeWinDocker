@@ -14,8 +14,8 @@ find "$REPO_ROOT" -name "*.sh" | xargs dos2unix -q 2>/dev/null || true
 # Fix ~/.config/git/config if Docker accidentally created it as a directory
 GITCONFIG_HOST="$HOME/.config/git/config"
 if [ -d "$GITCONFIG_HOST" ]; then
-    echo "WARNING: $GITCONFIG_HOST is a directory (Docker artefact). Removing it."
-    rmdir "$GITCONFIG_HOST" 2>/dev/null || rm -rf "$GITCONFIG_HOST"
+    echo "Removing Docker artefact directory at $GITCONFIG_HOST (requires sudo)..."
+    sudo rm -rf "$GITCONFIG_HOST"
 fi
 
 # Ensure claude-configs is cloned and symlinks are in place

@@ -3,7 +3,7 @@ set -e
 
 if [ -d "$HOME/claude-configs/.git" ]; then
     echo "claude-configs already cloned, pulling latest..."
-    git -C "$HOME/claude-configs" pull
+    git -C "$HOME/claude-configs" pull || echo "git pull failed (skipping), continuing with existing clone"
 else
     git clone https://github.com/StefanMaron/claude-configs.git "$HOME/claude-configs"
 fi
