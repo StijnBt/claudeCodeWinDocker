@@ -49,3 +49,15 @@ if [ ! -f "$SETTINGS" ]; then
     echo '{}' > "$SETTINGS"
     echo "Created $SETTINGS"
 fi
+
+# Ensure the plugin is pre-enabled using its container-side path
+python3 - <<PYEOF
+import json, os
+path = "$SETTINGS"
+with open(path) as f:
+    s = json.load(f)
+s.setdefault("enabledPlugins", {})["$PLUGIN_SRC_CONTAINER"] = True
+with open(path, "w") as f:
+    json.dump(s, f, indent=2)
+PYEOF
+echo "Plugin pre-enabled in settings.json"
