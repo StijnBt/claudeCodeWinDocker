@@ -14,7 +14,7 @@ fi
 
 # Install networking tools for the firewall, and Node.js for AL MCP servers
 apt-get update
-apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fsprogs nodejs npm
+apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fsprogs nodejs npm jq
 rm -rf /var/lib/apt/lists/*
 
 # Install AL development MCP servers globally (must happen before firewall is active)
@@ -45,6 +45,9 @@ if [ ! -f "${CLAUDE_JSON}" ]; then
     echo '{"hasCompletedOnboarding":true,"numStartups":1,"installMethod":"native"}' > "${CLAUDE_JSON}"
     chown "${_REMOTE_USER}:${_REMOTE_USER}" "${CLAUDE_JSON}"
 fi
+
+# Clone AL development configs (must happen before firewall is active)
+su - "${_REMOTE_USER}" -c "git clone https://github.com/StefanMaron/claude-configs.git ${_REMOTE_USER_HOME}/claude-configs"
 
 # Install firewall script and make it owned by root
 cp "$(dirname "$0")/init-firewall.sh" /usr/local/bin/init-firewall.sh

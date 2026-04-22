@@ -28,14 +28,6 @@ CLAUDE_DIR="/home/vscode/.claude"
 if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
     CONFIGS_DIR="/home/vscode/claude-configs"
 
-    if [ -d "$CONFIGS_DIR/.git" ]; then
-        echo "Updating claude-configs..."
-        gosu vscode git -C "$CONFIGS_DIR" pull || echo "git pull failed, continuing with existing clone"
-    else
-        echo "Cloning claude-configs..."
-        gosu vscode git clone https://github.com/StefanMaron/claude-configs.git "$CONFIGS_DIR"
-    fi
-
     PLUGIN_SRC="$CONFIGS_DIR/profile-al-development"
 
     for subdir in agents skills commands; do
@@ -65,6 +57,23 @@ if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
 }
 EOF
 else
+    # Remove any AL profile symlinks left from a previous run
+    for subdir in agents skills commands; do
+        if [ -d "$CLAUDE_DIR/$subdir" ]; then
+            find "$CLAUDE_DIR/$subdir" -maxdepth 1 -type l -delete
+        fi
+    done
+    [ -L "$CLAUDE_DIR/CLAUDE.md" ] && rm -f "$CLAUDE_DIR/CLAUDE.md"
+
+    # Strip enabledPlugins from persisted .claude.json if jq is available
+    CLAUDE_JSON_PERSIST="$CLAUDE_DIR/.claude.json"
+    if [ -f "$CLAUDE_JSON_PERSIST" ] && command -v jq > /dev/null 2>&1; then
+        tmp=$(mktemp)
+        jq 'del(.enabledPlugins) | del(.marketplaces)' "$CLAUDE_JSON_PERSIST" > "$tmp" \
+            && mv "$tmp" "$CLAUDE_JSON_PERSIST" \
+            && chown vscode:vscode "$CLAUDE_JSON_PERSIST"
+    fi
+
     cat > "$CLAUDE_DIR/settings.json" <<'EOF'
 {
   "skipDangerousModePermissionPrompt": true
