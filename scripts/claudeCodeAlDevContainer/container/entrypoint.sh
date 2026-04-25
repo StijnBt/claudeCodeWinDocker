@@ -47,8 +47,16 @@ if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
 
     cat > "$CLAUDE_DIR/settings.json" <<'EOF'
 {
+  "extraKnownMarketplaces": {
+    "claude-configs": {
+      "source": {
+        "source": "directory",
+        "path": "/home/vscode/claude-configs"
+      }
+    }
+  },
   "enabledPlugins": {
-    "/home/vscode/claude-configs/profile-al-development": true
+    "profile-al-development@claude-configs": true
   },
   "skipDangerousModePermissionPrompt": true
 }
