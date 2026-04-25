@@ -26,20 +26,10 @@ fi
 CLAUDE_DIR="/home/vscode/.claude"
 
 if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
-    CONFIGS_DIR="/home/vscode/claude-configs"
-
-    cat > "$CLAUDE_DIR/settings.json" <<EOF
+    cat > "$CLAUDE_DIR/settings.json" <<'EOF'
 {
-  "extraKnownMarketplaces": {
-    "local": {
-      "source": {
-        "source": "directory",
-        "path": "$CONFIGS_DIR"
-      }
-    }
-  },
   "enabledPlugins": {
-    "profile-al-development@local": true
+    "/home/vscode/claude-configs/profile-al-development": true
   },
   "skipDangerousModePermissionPrompt": true
 }
