@@ -70,6 +70,9 @@ else
     done
     [ -L "$CLAUDE_DIR/CLAUDE.md" ] && rm -f "$CLAUDE_DIR/CLAUDE.md"
 
+    # Remove persisted plugin/marketplace state so AL plugins don't bleed into vanilla
+    rm -rf "$CLAUDE_DIR/plugins"
+
     # Strip enabledPlugins from persisted .claude.json if jq is available
     CLAUDE_JSON_PERSIST="$CLAUDE_DIR/.claude.json"
     if [ -f "$CLAUDE_JSON_PERSIST" ] && command -v jq > /dev/null 2>&1; then
