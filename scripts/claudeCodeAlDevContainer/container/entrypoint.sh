@@ -26,6 +26,25 @@ fi
 CLAUDE_DIR="/home/vscode/.claude"
 
 if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
+    PLUGIN_DIR="/home/vscode/claude-configs/profile-al-development"
+
+    # Symlink agents/skills/commands directly into ~/.claude/ so Claude Code
+    # picks them up natively without relying on the plugin install mechanism.
+    for subdir in agents skills commands; do
+        mkdir -p "$CLAUDE_DIR/$subdir"
+        if [ -d "$PLUGIN_DIR/$subdir" ]; then
+            for f in "$PLUGIN_DIR/$subdir"/*; do
+                [ -e "$f" ] || continue
+                ln -sf "$f" "$CLAUDE_DIR/$subdir/$(basename "$f")"
+            done
+        fi
+    done
+
+    # Symlink the plugin's CLAUDE.md as the user-level CLAUDE.md
+    if [ ! -e "$CLAUDE_DIR/CLAUDE.md" ] || [ -L "$CLAUDE_DIR/CLAUDE.md" ]; then
+        ln -sf "$PLUGIN_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+    fi
+
     cat > "$CLAUDE_DIR/settings.json" <<'EOF'
 {
   "enabledPlugins": {
