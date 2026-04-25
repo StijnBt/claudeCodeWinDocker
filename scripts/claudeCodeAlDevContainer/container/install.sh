@@ -49,6 +49,41 @@ fi
 # Clone AL development configs (must happen before firewall is active)
 su - "${_REMOTE_USER}" -c "git clone https://github.com/StefanMaron/claude-configs.git ${_REMOTE_USER_HOME}/claude-configs"
 
+# Create marketplace manifest if the repo doesn't include one (required by Claude Code to resolve plugins)
+CONFIGS_DIR="${_REMOTE_USER_HOME}/claude-configs"
+MARKETPLACE_DIR="${CONFIGS_DIR}/.claude-plugin"
+if [ ! -f "${MARKETPLACE_DIR}/marketplace.json" ]; then
+    mkdir -p "${MARKETPLACE_DIR}"
+    cat > "${MARKETPLACE_DIR}/marketplace.json" <<'EOF'
+{
+  "name": "al-development-configs",
+  "owner": { "name": "StefanMaron" },
+  "plugins": [
+    {
+      "name": "profile-al-development",
+      "source": "./profile-al-development",
+      "strict": false
+    }
+  ]
+}
+EOF
+    chown -R "${_REMOTE_USER}:${_REMOTE_USER}" "${MARKETPLACE_DIR}"
+fi
+
+# Create plugin manifest if the plugin directory doesn't include one
+PLUGIN_DIR="${CONFIGS_DIR}/profile-al-development/.claude-plugin"
+if [ ! -f "${PLUGIN_DIR}/plugin.json" ]; then
+    mkdir -p "${PLUGIN_DIR}"
+    cat > "${PLUGIN_DIR}/plugin.json" <<'EOF'
+{
+  "name": "profile-al-development",
+  "description": "AL Development Profile by StefanMaron",
+  "version": "1.0.0"
+}
+EOF
+    chown -R "${_REMOTE_USER}:${_REMOTE_USER}" "${PLUGIN_DIR}"
+fi
+
 # Install firewall script and make it owned by root
 cp "$(dirname "$0")/init-firewall.sh" /usr/local/bin/init-firewall.sh
 chmod 755 /usr/local/bin/init-firewall.sh

@@ -28,30 +28,18 @@ CLAUDE_DIR="/home/vscode/.claude"
 if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
     CONFIGS_DIR="/home/vscode/claude-configs"
 
-    PLUGIN_SRC="$CONFIGS_DIR/profile-al-development"
-
-    for subdir in agents skills commands; do
-        mkdir -p "$CLAUDE_DIR/$subdir"
-        chown vscode:vscode "$CLAUDE_DIR/$subdir"
-        [ -d "$PLUGIN_SRC/$subdir" ] || continue
-        for f in "$PLUGIN_SRC/$subdir"/*; do
-            [ -e "$f" ] || continue
-            fname=$(basename "$f")
-            ln -sf "$PLUGIN_SRC/$subdir/$fname" "$CLAUDE_DIR/$subdir/$fname"
-            chown -h vscode:vscode "$CLAUDE_DIR/$subdir/$fname"
-        done
-    done
-
-    CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
-    if [ ! -e "$CLAUDE_MD" ] || [ -L "$CLAUDE_MD" ]; then
-        ln -sf "$PLUGIN_SRC/CLAUDE.md" "$CLAUDE_MD"
-        chown -h vscode:vscode "$CLAUDE_MD"
-    fi
-
     cat > "$CLAUDE_DIR/settings.json" <<EOF
 {
+  "extraKnownMarketplaces": {
+    "local": {
+      "source": {
+        "source": "directory",
+        "path": "$CONFIGS_DIR"
+      }
+    }
+  },
   "enabledPlugins": {
-    "$PLUGIN_SRC": true
+    "profile-al-development@local": true
   },
   "skipDangerousModePermissionPrompt": true
 }
@@ -69,7 +57,7 @@ else
     CLAUDE_JSON_PERSIST="$CLAUDE_DIR/.claude.json"
     if [ -f "$CLAUDE_JSON_PERSIST" ] && command -v jq > /dev/null 2>&1; then
         tmp=$(mktemp)
-        jq 'del(.enabledPlugins) | del(.marketplaces)' "$CLAUDE_JSON_PERSIST" > "$tmp" \
+        jq 'del(.enabledPlugins) | del(.marketplaces) | del(.extraKnownMarketplaces)' "$CLAUDE_JSON_PERSIST" > "$tmp" \
             && mv "$tmp" "$CLAUDE_JSON_PERSIST" \
             && chown vscode:vscode "$CLAUDE_JSON_PERSIST"
     fi
