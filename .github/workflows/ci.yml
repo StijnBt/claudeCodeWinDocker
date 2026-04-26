@@ -21,7 +21,7 @@ jobs:
       - name: Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: scripts/claudeCodeAlDevContainer/src/Dockerfile
+          dockerfile: scripts/claudeCodeAlDevContainer/container/Dockerfile
           ignore: DL3008,DL3016
 
       - name: PSScriptAnalyzer
@@ -46,7 +46,7 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: scripts/claudeCodeAlDevContainer/src
+          context: scripts/claudeCodeAlDevContainer/container
           push: false
           load: true
           tags: claude-code-sandbox:ci

@@ -1,5 +1,13 @@
 #Requires -RunAsAdministrator
 
+Write-Host "This will uninstall Claude Code, remove WSL2/Ubuntu, and disable Windows virtualization features." -ForegroundColor Yellow
+Write-Host "This action cannot be undone." -ForegroundColor Yellow
+$confirm = Read-Host "Are you sure you want to proceed? (Y/N)"
+if ($confirm -notmatch '^[Yy]$') {
+    Write-Host "Uninstall cancelled." -ForegroundColor Green
+    exit 0
+}
+
 Write-Host "[1/4]: Uninstalling Claude Code Local..." -ForegroundColor Cyan
 
 # Remove Claude Code binaries
@@ -47,3 +55,4 @@ else {
 
 
 Write-Host "*** REBOOT REQUIRED ***" -ForegroundColor Cyan
+Read-Host "`nPress Enter to exit"

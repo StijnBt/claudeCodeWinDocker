@@ -26,9 +26,7 @@ ENV _REMOTE_USER=vscode
 ENV _REMOTE_USER_HOME=/home/vscode
 WORKDIR /tmp
 RUN chmod +x /tmp/install.sh /tmp/init-firewall.sh /tmp/harden-env.sh \
-    && VERSION="${VERSION}" bash install.sh \
-    && cp "$(readlink -f /home/vscode/.local/bin/claude)" /usr/local/bin/claude \
-    && chmod +x /usr/local/bin/claude
+    && VERSION="${VERSION}" bash install.sh
 
 # Credential-stripping environment variables
 ENV GIT_TERMINAL_PROMPT=0

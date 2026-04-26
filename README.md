@@ -1,60 +1,56 @@
 # claudeCodeWinDocker
 
-Runs [Claude Code](https://claude.ai/code) inside a hardened Docker container on Windows (WSL2), preconfigured for AL / Business Central development. Strict network restrictions prevent the AI agent from reaching unauthorized services.
+Runs [Claude Code](https://claude.ai/code) inside a hardened Docker container on Windows (WSL2).
+A strict egress firewall prevents the AI agent from reaching unauthorized services.
 
----
+Two profiles are available at launch:
+1) **Vanilla Claude Code**
+2) **Profile AL Development** (preconfigured with Stefan Maron's [`profile-al-development`](https://github.com/StefanMaron/claude-configs) plugin).
+
 
 ## Credits
 
 This project is a fork of [StefanMaron/claudeCodeAlDevContainer](https://github.com/StefanMaron/claudeCodeAlDevContainer) by [Stefan Maron](https://github.com/StefanMaron). The core sandbox architecture, security hardening, firewall design, and AL development plugin all originate from his work. Many thanks to Stefan for laying the foundation that made this project possible.
 
----
 
-## Prerequisites
+## Setup
+
+### Prerequisites
 
 - Windows 10 (build 19041+) or Windows 11
 - WSL2
-- An [Anthropic API key](https://console.anthropic.com/)
-- [Windows Terminal](https://aka.ms/terminal) — required for the VS Code tasks. Pre-installed on Windows 11; install separately on Windows 10 via the Microsoft Store or `winget install Microsoft.WindowsTerminal`.
+- A Claude account type that supports Claude Code
+- [Windows Terminal](https://aka.ms/terminal)
 
----
 
-## Installation
+### Install
+
+> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
 Run the VS Code task **claudeCodeWinDocker: Install** (requires VS Code started as Administrator), or open PowerShell **as Administrator** and run:
 
 ```powershell
-.\scripts\claudeCodeAlDevContainer\install\install.ps1
+.\scripts\claudeCodeAlDevContainer\setup\install.ps1
 ```
 
 This will:
 
-1. Enable the WSL2 Windows features *(a reboot is required if not already enabled — rerun the script after rebooting)*
+1. Enable the WSL2 Windows features
 2. Install an Ubuntu distribution in WSL2
 3. Configure Git user settings in WSL2
 4. Install Docker Engine inside Ubuntu
 5. Optionally install Claude Code on Windows itself
-6. Clone [StefanMaron/claude-configs](https://github.com/StefanMaron/claude-configs) and configure the AL development plugin
 
-**Flags:**
 
-| Flag | Effect |
-|---|---|
-| `-SkipDocker` | Skip Docker installation (use if Docker is already set up in WSL2) |
-| `-SkipClaude` | Skip the Claude Code for Windows prompt |
+### Uninstall
 
----
+> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
-## Configuration
+Run the VS Code task **claudeCodeWinDocker: Uninstall** (requires VS Code started as Administrator), or run as Administrator:
 
-Set your Anthropic API key in your WSL2 terminal:
 
-```bash
-echo 'export ANTHROPIC_API_KEY=sk-ant-...' >> ~/.bashrc
-source ~/.bashrc
-```
+A confirmation prompt is shown before any destructive action. Removes Claude Code, Ubuntu from WSL2, and disables the WSL2 Windows features. A reboot is required.
 
----
 
 ## Running the sandbox
 
@@ -62,90 +58,47 @@ source ~/.bashrc
 
 > **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
-Open the repo in VS Code and run the task via `Ctrl+Shift+P` → **Tasks: Run Task** → **claudeCodeWinDocker: Run**.
+`Ctrl+Shift+P` → **Tasks: Run Task** → **claudeCodeWinDocker: Run**.
 
 This opens a new Windows Terminal tab, launches WSL2, and starts the container.
 
-### Via terminal
-
-In a WSL2 terminal at the repo root:
-
-```bash
-bash scripts/claudeCodeAlDevContainer/run-sandbox.sh
-```
-
 The Docker image (`claude-code-sandbox`) is built automatically on first run.
 
-### Pre-built image
+### Profile selection
 
-A pre-built image is published to the GitHub Container Registry on every release:
+On launch you choose:
 
-```bash
-docker pull ghcr.io/stijnbt/claude-code-sandbox:latest
+```
+1) Vanilla Claude Code
+2) Profile AL Development
 ```
 
----
+- **Vanilla** — clean Claude Code with no plugins, agents, or commands. Any AL plugin state from a previous session is wiped before start.
+- **AL Development** — registers the local marketplace `claude-configs`, enables `profile-al-development@claude-configs`, and symlinks the plugin's agents, skills, commands, and `CLAUDE.md` into `~/.claude/`.
 
-## AL development plugin
 
-The sandbox includes the [profile-al-development](https://github.com/StefanMaron/claude-configs/tree/master/profile-al-development) plugin from `claude-configs`, which adds:
-
-- **Slash commands**: `/interview`, `/plan`, `/develop`, `/fix`, `/test`, `/document`
-- **MCP servers** (pre-installed in the image):
-  - `al-mcp-server` — AL build, compile, publish, symbol search, and diagnostics via `altool`
-  - `bc-code-intelligence-mcp` — Business Central code intelligence
-  - `microsoft_docs_mcp` — Microsoft Learn documentation at `learn.microsoft.com/api/mcp`
-
-The plugin profile is mounted from `~/claude-configs` in WSL2 and persisted across container restarts.
-
----
-
-## What the sandbox does
-
-When the container starts (before Claude Code launches):
-
-- Firewall egress rules are applied — all outbound traffic is blocked except:
-  - `api.anthropic.com`
-  - `claude.ai`
-  - `console.anthropic.com`
-  - `statsig.anthropic.com`
-  - `marketplace.visualstudio.com`
-  - `vscode.blob.core.windows.net`
-  - `update.code.visualstudio.com`
-  - `learn.microsoft.com`
-- IPv6 is disabled to prevent firewall bypass
-- VS Code IPC sockets are removed to block host command execution via the remote extension protocol
-- Sudo access is locked down to only allow running the firewall script
-- The firewall and hardening scripts are made immutable (`chattr +i`)
-
----
-
-## Mounts
+### Mounts
 
 | Host (WSL2) | Container | Notes |
 |---|---|---|
 | Current directory | `/workspaces/project` | Your project files |
-| `~/claude-al-development` | `/home/vscode/.claude` | Claude config and settings, persisted across runs |
-| `~/claude-configs` | `/home/vscode/claude-configs` | AL development plugin, read-only |
-| `~/.config/git/config` | `/home/vscode/.gitconfig` | Git identity, read-only |
+| `claude-code-data` (Docker volume) | `/home/vscode/.claude` | Claude config, plugin state, and onboarding flags, persisted across runs |
+| `~/.config/git/config` (if exists) | `/home/vscode/.gitconfig` | Git identity, read-only |
 
----
+The `claude-configs` plugin sources are baked into the image at `/home/vscode/claude-configs/` and not mounted from the host.
+
+
 
 ## Rebuilding the image
 
-After modifying any file under `scripts/claudeCodeAlDevContainer/src/`, rebuild via VS Code task **claudeCodeWinDocker: (Re)Build Docker Image**, or manually:
+> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
-```bash
-docker build -t claude-code-sandbox scripts/claudeCodeAlDevContainer/src
-```
+After modifying any file under `scripts/claudeCodeAlDevContainer/container/`, clear the image via VS Code task **claudeCodeWinDocker: Clear Docker Image**. Which removes the image so the next run rebuilds it.
 
-Or remove the image and let `run-sandbox.sh` rebuild it on next launch:
+Fetching external repos happens when building the Docker Image, a refresh of those repo's also requires a rebuild of the image.
 
-```bash
-docker rmi claude-code-sandbox
-```
 
----
+
 
 ## CI / CD
 
@@ -156,19 +109,8 @@ GitHub Actions workflows run on every push:
 
 On `v*` tag push, the release workflow builds and publishes the image to GHCR and creates a GitHub Release with auto-generated notes.
 
----
 
-## Uninstall
 
-Run the VS Code task **claudeCodeWinDocker: Uninstall** (requires VS Code started as Administrator), or run as Administrator:
-
-```powershell
-.\scripts\claudeCodeAlDevContainer\install\uninstall.ps1
-```
-
-Removes Claude Code, Ubuntu from WSL2, and disables the WSL2 Windows features. A reboot is required.
-
----
 
 ## Why Docker on WSL2 instead of Docker Desktop?
 
