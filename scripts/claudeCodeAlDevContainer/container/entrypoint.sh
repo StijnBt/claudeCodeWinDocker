@@ -61,9 +61,42 @@ if [ "${CLAUDE_PROFILE}" = "al-development" ]; then
   "skipDangerousModePermissionPrompt": true
 }
 EOF
+elif [ "${CLAUDE_PROFILE}" = "al-development-aldc" ]; then
+    PLUGIN_DIR="/home/vscode/aldc-configs/claude-plugin"
+
+    for subdir in agents skills commands hooks; do
+        mkdir -p "$CLAUDE_DIR/$subdir"
+        if [ -d "$PLUGIN_DIR/$subdir" ]; then
+            for f in "$PLUGIN_DIR/$subdir"/*; do
+                [ -e "$f" ] || continue
+                ln -sf "$f" "$CLAUDE_DIR/$subdir/$(basename "$f")"
+            done
+        fi
+    done
+
+    if [ ! -e "$CLAUDE_DIR/CLAUDE.md" ] || [ -L "$CLAUDE_DIR/CLAUDE.md" ]; then
+        ln -sf "$PLUGIN_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+    fi
+
+    cat > "$CLAUDE_DIR/settings.json" <<'EOF'
+{
+  "extraKnownMarketplaces": {
+    "aldc-marketplace": {
+      "source": {
+        "source": "directory",
+        "path": "/home/vscode/aldc-configs/claude-plugin"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aldc@aldc-marketplace": true
+  },
+  "skipDangerousModePermissionPrompt": true
+}
+EOF
 else
     # Remove any AL profile symlinks left from a previous run
-    for subdir in agents skills commands; do
+    for subdir in agents skills commands hooks; do
         if [ -d "$CLAUDE_DIR/$subdir" ]; then
             find "$CLAUDE_DIR/$subdir" -maxdepth 1 -type l -delete
         fi

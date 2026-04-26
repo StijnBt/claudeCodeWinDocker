@@ -49,6 +49,9 @@ fi
 # Clone AL development configs (must happen before firewall is active)
 su - "${_REMOTE_USER}" -c "git clone https://github.com/StefanMaron/claude-configs.git ${_REMOTE_USER_HOME}/claude-configs"
 
+# Clone ALDC AL Development Collection (must happen before firewall is active)
+su - "${_REMOTE_USER}" -c "git clone https://github.com/javiarmesto/ALDC-AL-Development-Collection.git ${_REMOTE_USER_HOME}/aldc-configs"
+
 # Create marketplace manifest if the repo doesn't include one (required by Claude Code to resolve plugins)
 CONFIGS_DIR="${_REMOTE_USER_HOME}/claude-configs"
 MARKETPLACE_DIR="${CONFIGS_DIR}/.claude-plugin"
