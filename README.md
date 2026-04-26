@@ -7,24 +7,23 @@ Two profiles are available at launch:
 1) **Vanilla Claude Code**
 2) **Profile AL Development** (preconfigured with Stefan Maron's [`profile-al-development`](https://github.com/StefanMaron/claude-configs) plugin).
 
----
 
 ## Credits
 
 This project is a fork of [StefanMaron/claudeCodeAlDevContainer](https://github.com/StefanMaron/claudeCodeAlDevContainer) by [Stefan Maron](https://github.com/StefanMaron). The core sandbox architecture, security hardening, firewall design, and AL development plugin all originate from his work. Many thanks to Stefan for laying the foundation that made this project possible.
 
----
 
-## Prerequisites
+## Setup
+
+### Prerequisites
 
 - Windows 10 (build 19041+) or Windows 11
 - WSL2
 - A Claude account type that supports Claude Code
 - [Windows Terminal](https://aka.ms/terminal)
 
----
 
-## Installation
+### Install
 
 > **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
@@ -42,7 +41,16 @@ This will:
 4. Install Docker Engine inside Ubuntu
 5. Optionally install Claude Code on Windows itself
 
----
+
+### Uninstall
+
+> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
+
+Run the VS Code task **claudeCodeWinDocker: Uninstall** (requires VS Code started as Administrator), or run as Administrator:
+
+
+A confirmation prompt is shown before any destructive action. Removes Claude Code, Ubuntu from WSL2, and disables the WSL2 Windows features. A reboot is required.
+
 
 ## Running the sandbox
 
@@ -68,9 +76,8 @@ On launch you choose:
 - **Vanilla** — clean Claude Code with no plugins, agents, or commands. Any AL plugin state from a previous session is wiped before start.
 - **AL Development** — registers the local marketplace `claude-configs`, enables `profile-al-development@claude-configs`, and symlinks the plugin's agents, skills, commands, and `CLAUDE.md` into `~/.claude/`.
 
----
 
-## Mounts
+### Mounts
 
 | Host (WSL2) | Container | Notes |
 |---|---|---|
@@ -80,16 +87,18 @@ On launch you choose:
 
 The `claude-configs` plugin sources are baked into the image at `/home/vscode/claude-configs/` and not mounted from the host.
 
----
+
 
 ## Rebuilding the image
 
 > **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
 
-After modifying any file under `scripts/claudeCodeAlDevContainer/container/`, rebuild via VS Code task **claudeCodeWinDocker: Clear Docker Image** (which removes the image so the next run rebuilds it), or manually:
+After modifying any file under `scripts/claudeCodeAlDevContainer/container/`, clear the image via VS Code task **claudeCodeWinDocker: Clear Docker Image**. Which removes the image so the next run rebuilds it.
+
+Fetching external repos happens when building the Docker Image, a refresh of those repo's also requires a rebuild of the image.
 
 
----
+
 
 ## CI / CD
 
@@ -100,18 +109,8 @@ GitHub Actions workflows run on every push:
 
 On `v*` tag push, the release workflow builds and publishes the image to GHCR and creates a GitHub Release with auto-generated notes.
 
----
-
-## Uninstall
-
-> **Note:** VS Code must be started **Run as Administrator** for tasks to work correctly.
-
-Run the VS Code task **claudeCodeWinDocker: Uninstall** (requires VS Code started as Administrator), or run as Administrator:
 
 
-A confirmation prompt is shown before any destructive action. Removes Claude Code, Ubuntu from WSL2, and disables the WSL2 Windows features. A reboot is required.
-
----
 
 ## Why Docker on WSL2 instead of Docker Desktop?
 
