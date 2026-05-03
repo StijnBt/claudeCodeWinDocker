@@ -94,6 +94,36 @@ elif [ "${CLAUDE_PROFILE}" = "al-development-aldc" ]; then
   "skipDangerousModePermissionPrompt": true
 }
 EOF
+
+    # Write enabledPlugins + extraKnownMarketplaces into the persisted .claude.json
+    # so Claude Code treats the plugin as installed on first launch (settings.json
+    # alone only marks it as enabled, not installed).
+    # Write enabledPlugins + extraKnownMarketplaces into the persisted .claude.json
+    # so Claude Code treats the plugin as installed on first launch. settings.json
+    # alone only marks it as enabled; .claude.json is where Claude Code resolves state.
+    CLAUDE_JSON_PERSIST="$CLAUDE_DIR/.claude.json"
+    if command -v jq > /dev/null 2>&1; then
+        if [ ! -f "$CLAUDE_JSON_PERSIST" ]; then
+            # First run — seed the file so the symlink setup below can link it
+            echo '{"hasCompletedOnboarding":true,"numStartups":1,"installMethod":"native"}' > "$CLAUDE_JSON_PERSIST"
+            chown vscode:vscode "$CLAUDE_JSON_PERSIST"
+            # Also wire up the symlink from ~/.claude.json → this file
+            rm -f "$CLAUDE_JSON"
+            ln -s "$CLAUDE_JSON_PERSIST" "$CLAUDE_JSON"
+            chown -h vscode:vscode "$CLAUDE_JSON"
+        fi
+        tmp=$(mktemp)
+        jq '. + {
+          "enabledPlugins": {"aldc@aldc-marketplace": true},
+          "extraKnownMarketplaces": {
+            "aldc-marketplace": {
+              "source": {"source": "directory", "path": "/home/vscode/aldc-configs/claude-plugin"}
+            }
+          }
+        }' "$CLAUDE_JSON_PERSIST" > "$tmp" \
+            && mv "$tmp" "$CLAUDE_JSON_PERSIST" \
+            && chown vscode:vscode "$CLAUDE_JSON_PERSIST"
+    fi
 else
     # Remove any AL profile symlinks left from a previous run
     for subdir in agents skills commands hooks; do

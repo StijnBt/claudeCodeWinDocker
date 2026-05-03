@@ -18,7 +18,7 @@ apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fs
 rm -rf /var/lib/apt/lists/*
 
 # Install AL development MCP servers globally (must happen before firewall is active)
-npm install -g al-mcp-server bc-code-intelligence-mcp
+npm install -g al-mcp-server bc-code-intelligence-mcp @nicholasglazer/al-symbols-mcp @nicholasglazer/microsoft-docs-mcp
 
 # Install Claude Code for the remote user
 if [ "${_REMOTE_USER}" = "root" ]; then
