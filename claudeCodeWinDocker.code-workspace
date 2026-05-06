@@ -1,0 +1,94 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "claudeCodeWinDocker: Run",
+                "type": "shell",
+                "command": "cmd",
+                "args": [
+                    "/c",
+                    "start",
+                    "wt",
+                    "wsl",
+                    "--cd",
+                    "${workspaceFolder}",
+                    "bash",
+                    "-ic",
+                    "bash scripts/claudeCodeAlDevContainer/run-sandbox.sh"
+                ],
+                "presentation": {
+                    "reveal": "never",
+                    "focus": false
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "claudeCodeWinDocker: Install",
+                "type": "shell",
+                "command": "cmd",
+                "args": [
+                    "/c",
+                    "start",
+                    "wt",
+                    "powershell",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\install.ps1"
+                ],
+                "presentation": {
+                    "reveal": "never",
+                    "focus": false
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "claudeCodeWinDocker: Uninstall",
+                "type": "shell",
+                "command": "cmd",
+                "args": [
+                    "/c",
+                    "start",
+                    "wt",
+                    "powershell",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\uninstall.ps1"
+                ],
+                "presentation": {
+                    "reveal": "never",
+                    "focus": false
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "claudeCodeWinDocker: Clear Docker Image",
+                "type": "shell",
+                "command": "cmd",
+                "args": [
+                    "/c",
+                    "start",
+                    "wt",
+                    "wsl",
+                    "--cd",
+                    "${workspaceFolder}",
+                    "bash",
+                    "-ic",
+                    "bash scripts/claudeCodeAlDevContainer/clear-image.sh"
+                ],
+                "presentation": {
+                    "reveal": "never",
+                    "focus": false
+                },
+                "problemMatcher": []
+            }
+        ]
+    }
+}

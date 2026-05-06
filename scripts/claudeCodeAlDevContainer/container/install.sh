@@ -18,7 +18,7 @@ apt-get install -y --no-install-recommends iptables ipset iproute2 dnsutils e2fs
 rm -rf /var/lib/apt/lists/*
 
 # Install AL development MCP servers globally (must happen before firewall is active)
-npm install -g al-mcp-server bc-code-intelligence-mcp @nicholasglazer/al-symbols-mcp @nicholasglazer/microsoft-docs-mcp
+npm install -g al-mcp-server bc-code-intelligence-mcp
 
 # Install Claude Code for the remote user
 if [ "${_REMOTE_USER}" = "root" ]; then
@@ -51,6 +51,21 @@ su - "${_REMOTE_USER}" -c "git clone https://github.com/StefanMaron/claude-confi
 
 # Clone ALDC AL Development Collection (must happen before firewall is active)
 su - "${_REMOTE_USER}" -c "git clone https://github.com/javiarmesto/ALDC-AL-Development-Collection.git ${_REMOTE_USER_HOME}/aldc-configs"
+
+# Patch ALDC MCP config: remove non-existent packages, merge in Stefan's working MCPs
+MCP_JSON="${_REMOTE_USER_HOME}/aldc-configs/claude-plugin/.mcp.json"
+STEFAN_MCP="${_REMOTE_USER_HOME}/claude-configs/profile-al-development/.mcp.json"
+if [ -f "${MCP_JSON}" ] && [ -f "${STEFAN_MCP}" ]; then
+    jq -s \
+        --arg home "${_REMOTE_USER_HOME}" \
+        '.[0].mcpServers
+         + (.[1].mcpServers | del(.alcops, .["bc-telemetry-buddy"]))
+         | del(.["al-symbols-mcp"], .["microsoft-docs"])
+         | .["bc-code-intelligence-mcp"].env.BC_CODE_INTEL_CONFIG |= gsub("^~"; $home)
+         | {mcpServers: .}' \
+        "${MCP_JSON}" "${STEFAN_MCP}" > "${MCP_JSON}.tmp" \
+        && mv "${MCP_JSON}.tmp" "${MCP_JSON}"
+fi
 
 # Create marketplace manifest if the repo doesn't include one (required by Claude Code to resolve plugins)
 CONFIGS_DIR="${_REMOTE_USER_HOME}/claude-configs"
