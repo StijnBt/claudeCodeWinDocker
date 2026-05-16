@@ -1,7 +1,10 @@
 {
     "folders": [
         {
-            "path": "."
+            "path": "app"
+        },
+        {
+            "path": "test"
         }
     ],
     "tasks": {
@@ -20,7 +23,7 @@
                     "${workspaceFolder}",
                     "bash",
                     "-ic",
-                    "bash scripts/claudeCodeAlDevContainer/run-sandbox.sh"
+                    "bash ../scripts/claudeCodeAlDevContainer/run-sandbox.sh"
                 ],
                 "presentation": {
                     "reveal": "never",
@@ -40,7 +43,7 @@
                     "-ExecutionPolicy",
                     "Bypass",
                     "-File",
-                    "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\install.ps1"
+                    "${workspaceFolder}\\..\\scripts\\claudeCodeAlDevContainer\\setup\\install.ps1"
                 ],
                 "presentation": {
                     "reveal": "never",
@@ -60,7 +63,7 @@
                     "-ExecutionPolicy",
                     "Bypass",
                     "-File",
-                    "${workspaceFolder}\\scripts\\claudeCodeAlDevContainer\\setup\\uninstall.ps1"
+                    "${workspaceFolder}\\..\\scripts\\claudeCodeAlDevContainer\\setup\\uninstall.ps1"
                 ],
                 "presentation": {
                     "reveal": "never",
@@ -81,7 +84,7 @@
                     "${workspaceFolder}",
                     "bash",
                     "-ic",
-                    "bash scripts/claudeCodeAlDevContainer/clear-image.sh"
+                    "bash ../scripts/claudeCodeAlDevContainer/clear-image.sh"
                 ],
                 "presentation": {
                     "reveal": "never",
