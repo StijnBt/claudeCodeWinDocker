@@ -1,5 +1,34 @@
 # Version history
 
+## v1.20260516.0
+
+Adds a third launch profile for Javier Armesto's ALDC-AL-Development-Collection plugin, introduces a VS Code workspace file with workspace-level tasks, and extends the firewall allowlist.
+
+### New features
+
+#### ALDC-AL-Development-Collection profile
+`run-sandbox.sh` now offers a third option:
+- **3) Claude Code with ALDC profile (Javier Armesto)** — registers Javier Armesto's [`ALDC-AL-Development-Collection`](https://github.com/javiarmesto/ALDC-AL-Development-Collection) plugin.
+
+`install.sh` clones the repo into `/home/vscode/aldc-configs/` at image-build time. It then patches the repo's `.mcp.json` with `jq`: non-functional packages (`alcops`, `bc-telemetry-buddy`, `al-symbols-mcp`, `microsoft-docs`) are removed and Stefan Maron's working MCP entries are merged in, with `~` in paths expanded to the actual home directory.
+
+`entrypoint.sh` handles the new `al-development-aldc` profile value:
+- Symlinks agents, skills, commands, hooks, and `CLAUDE.md` from the plugin into `~/.claude/`.
+- Writes `settings.json` pointing at the local `aldc-marketplace` directory and enabling `aldc@aldc-marketplace`.
+- Seeds and patches `.claude.json` via `jq` so Claude Code treats the plugin as installed on first launch.
+
+#### VS Code workspace file
+`claudeCodeWinDocker.code-workspace` added at repo root. Contains the `app` and `test` folder entries plus all four VS Code tasks (Run, Install, Uninstall, Clear Docker Image), keeping workspace-level and folder-level task definitions in sync.
+
+#### Firewall: `mcp.context7.com` allowlisted
+`init-firewall.sh` now resolves and allows `mcp.context7.com` alongside the existing approved domains.
+
+#### Hooks cleanup on vanilla reset
+The vanilla-mode cleanup loop in `entrypoint.sh` now also removes leftover symlinks from the `hooks/` subdirectory (previously only `agents`, `skills`, and `commands` were cleaned).
+
+### Other changes
+- `README.md` updated: profile list reflects all three options; workspace/app/symbolic-link usage note added; CI/CD section removed.
+
 ## v1.20260426.0
 
 A profile-aware, self-contained variant of the sandbox. The main goal of this branch is to let a single Docker image serve both vanilla Claude Code and the AL Development experience without requiring any host-side plugin setup.

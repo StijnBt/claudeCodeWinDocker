@@ -6,6 +6,8 @@ A strict egress firewall prevents the AI agent from reaching unauthorized servic
 Two profiles are available at launch:
 1) **Vanilla Claude Code**
 2) **Profile AL Development** (preconfigured with Stefan Maron's [`profile-al-development`](https://github.com/StefanMaron/claude-configs) plugin).
+3) **Profile ALDC-AL-Development** (preconfigured with Javier Armesto Gonzalezs [`ALDC-AL-Development-Collection
+`](https://github.com/javiarmesto/ALDC-AL-Development-Collection) plugin).
 
 
 ## Credits
@@ -64,17 +66,19 @@ This opens a new Windows Terminal tab, launches WSL2, and starts the container.
 
 The Docker image (`claude-code-sandbox`) is built automatically on first run.
 
+This setup works on workspace and folder (app) level.
+Tasks are defined in the workspace & tasks.json. Remove the ones that are obolete in your setup.
+Folders always reside on top-level, the app folders contains [symbolic links](https://www.howtogeek.com/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/) that refer to those top-level folders/files.
+
 ### Profile selection
 
 On launch you choose:
 
 ```
 1) Vanilla Claude Code
-2) Profile AL Development
+2) Claude Code with AL Development profile (Stefan Maron)
+3) Claude Code with ALDC profile (Javier Armesto)
 ```
-
-- **Vanilla** — clean Claude Code with no plugins, agents, or commands. Any AL plugin state from a previous session is wiped before start.
-- **AL Development** — registers the local marketplace `claude-configs`, enables `profile-al-development@claude-configs`, and symlinks the plugin's agents, skills, commands, and `CLAUDE.md` into `~/.claude/`.
 
 
 ### Mounts
@@ -96,19 +100,6 @@ The `claude-configs` plugin sources are baked into the image at `/home/vscode/cl
 After modifying any file under `scripts/claudeCodeAlDevContainer/container/`, clear the image via VS Code task **claudeCodeWinDocker: Clear Docker Image**. Which removes the image so the next run rebuilds it.
 
 Fetching external repos happens when building the Docker Image, a refresh of those repo's also requires a rebuild of the image.
-
-
-
-
-## CI / CD
-
-GitHub Actions workflows run on every push:
-
-- **Lint** — shellcheck (bash), hadolint (Dockerfile), PSScriptAnalyzer (PowerShell)
-- **Build & smoke test** — builds the Docker image and verifies the container starts and the firewall initialises correctly
-
-On `v*` tag push, the release workflow builds and publishes the image to GHCR and creates a GitHub Release with auto-generated notes.
-
 
 
 

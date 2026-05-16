@@ -30,13 +30,15 @@ echo "Claude Code Sandbox"
 echo "-------------------"
 echo "1) Vanilla Claude Code"
 echo "2) Claude Code with AL Development profile (Stefan Maron)"
+echo "3) Claude Code with ALDC profile (Javier Armesto)"
 echo ""
 while true; do
-    read -rp "Choose [1/2]: " choice
+    read -rp "Choose [1/2/3]: " choice
     case "$choice" in
-        1) CLAUDE_PROFILE=vanilla;        break ;;
-        2) CLAUDE_PROFILE=al-development; break ;;
-        *) echo "Please choose 1 or 2." ;;
+        1) CLAUDE_PROFILE=vanilla;              break ;;
+        2) CLAUDE_PROFILE=al-development;       break ;;
+        3) CLAUDE_PROFILE=al-development-aldc;  break ;;
+        *) echo "Please choose 1, 2, or 3." ;;
     esac
 done
 

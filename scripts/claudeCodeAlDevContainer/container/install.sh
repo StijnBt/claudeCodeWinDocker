@@ -49,6 +49,24 @@ fi
 # Clone AL development configs (must happen before firewall is active)
 su - "${_REMOTE_USER}" -c "git clone https://github.com/StefanMaron/claude-configs.git ${_REMOTE_USER_HOME}/claude-configs"
 
+# Clone ALDC AL Development Collection (must happen before firewall is active)
+su - "${_REMOTE_USER}" -c "git clone https://github.com/javiarmesto/ALDC-AL-Development-Collection.git ${_REMOTE_USER_HOME}/aldc-configs"
+
+# Patch ALDC MCP config: remove non-existent packages, merge in Stefan's working MCPs
+MCP_JSON="${_REMOTE_USER_HOME}/aldc-configs/claude-plugin/.mcp.json"
+STEFAN_MCP="${_REMOTE_USER_HOME}/claude-configs/profile-al-development/.mcp.json"
+if [ -f "${MCP_JSON}" ] && [ -f "${STEFAN_MCP}" ]; then
+    jq -s \
+        --arg home "${_REMOTE_USER_HOME}" \
+        '.[0].mcpServers
+         + (.[1].mcpServers | del(.alcops, .["bc-telemetry-buddy"]))
+         | del(.["al-symbols-mcp"], .["microsoft-docs"])
+         | .["bc-code-intelligence-mcp"].env.BC_CODE_INTEL_CONFIG |= gsub("^~"; $home)
+         | {mcpServers: .}' \
+        "${MCP_JSON}" "${STEFAN_MCP}" > "${MCP_JSON}.tmp" \
+        && mv "${MCP_JSON}.tmp" "${MCP_JSON}"
+fi
+
 # Create marketplace manifest if the repo doesn't include one (required by Claude Code to resolve plugins)
 CONFIGS_DIR="${_REMOTE_USER_HOME}/claude-configs"
 MARKETPLACE_DIR="${CONFIGS_DIR}/.claude-plugin"
